@@ -1,11 +1,53 @@
 import data.real.basic analysis.special_functions.exp_log
 import analysis.special_functions.pow
 
+import tactic
+
 /- In this file we prove Schloze Lemma 5.3 from https://www.math.uni-bonn.de/people/scholze/Analytic.pdf -/
 
 notation `|`x`|` := abs x
 
 open real set
+
+meta def diff : tactic unit :=
+`[apply_rules [differentiable_at_id,
+               differentiable_at.log,
+               differentiable_at.const_add, 
+               differentiable_at.add_const, 
+               differentiable_at.const_mul, 
+               differentiable_at.const_sub,
+               differentiable_at.mul
+               ], 
+               all_goals{linarith}]
+
+meta def cont_on : tactic unit :=
+`[apply_rules [continuous_on_id,
+               continuous_on.log,
+               continuous_on.mul,
+               continuous_on.add
+               ]]
+
+-- Right so I now need to prove that it's differentiable
+lemma diff_helper (s : ℝ) (s_pos : 0 < s) : deriv (λ x, (x + 1) * log(x + 1) - x*log x) s = log(s+1) - log(s) :=
+begin
+  simp {discharger:= `[diff]},
+  rw deriv.comp,
+  simp only [add_zero, differentiable_at_const, mul_one, one_mul, differentiable_at_id', deriv_id'', deriv_log', deriv_const',
+  deriv_add],
+  rw [mul_inv_cancel, mul_inv_cancel];
+  linarith,
+  all_goals{diff},
+end
+
+-- Jason's thing
+lemma mono_helper (f : ℝ → ℝ) (hf : strict_mono f) : ∀ x ∈ set.Ioc (0 : ℝ) 1, 
+  f x ≤ f 1 := 
+begin
+  rintro _ ⟨_, hx⟩,
+  rcases lt_or_eq_of_le hx with h | rfl,
+  { exact (le_trans $ le_of_lt $ hf h) le_rfl },
+  { exact le_rfl },
+end
 
 lemma log_mul' {a b : ℝ} (hb : 0 < b) : a * log (b * a) = a * log b + a * log a :=
 begin
@@ -23,6 +65,21 @@ begin
   congr',
   simp only [log_mul', ← mul_add, mul_assoc, log_mul' hl, log_abs],
   ring,
+end
+
+variables {α : Type} {f : ℝ → ℝ} {s : set ℝ}
+
+lemma continuous_on.id_log (hf : continuous_on f s) (h₀ : ∀ x ∈ s, f x ≠ 0) :
+  continuous_on (λ x, x * log (f x)) s :=
+--λ x hx, (hf x hx).log (h₀ x hx)
+begin
+  intros x hx,
+  apply continuous_within_at.mul,
+  { apply continuous_within_at_id},
+  { apply continuous_within_at.log,
+    { exact hf x hx,},
+    { exact h₀ x hx},
+  },
 end
 
 -- example (s t a : ℝ) (hst : s < t) (ha : -1 < a ∧ a < 1) : s = a * t := by library_search
@@ -144,6 +201,33 @@ begin
   linarith
 end
 
+lemma x_log_x_cont : continuous_on (λ x, (x + 1) * log (x + 1) - x * log x) (Icc 0 1) :=
+begin
+  apply continuous_on.add,
+  { apply continuous_on.mul,
+    { apply continuous_on.add,
+      { apply continuous_on_id},
+      { apply continuous_on_const},
+    },
+    { apply continuous_on.log,
+      { apply continuous_on.add,
+        { apply continuous_on_id},
+        { apply continuous_on_const},
+      },
+      { intros x x_in,
+        rw [← Icc_def, mem_set_of_eq] at x_in,
+        linarith,},
+    },
+  },
+  { -- prove the xlog x is continuous.
+    apply continuous_on.neg,
+    apply continuous_on.id_log,
+    { apply continuous_on_id,},
+    { -- needs me to prove that ∀ x ∈ Icc 0 1, x ≠ 0
+      sorry},
+  }
+end
+
 example (s : ℝ) (s_pos : 0 < s) (s_max : s ≤ 1): (s + 1) ^ (s + 1) / s ^ s ≤ 4 :=
 begin
   rw div_le_iff,
@@ -157,11 +241,40 @@ begin
       linarith},
   { rw [pow_to_exp1, pow_to_exp2],
     rw exp_le_exp,
-    sorry -- (s + 1) * log (s + 1) ≤ log 4 + s * log s
+    have H1 : ∀ {x : ℝ}, 0 < x → 0 < deriv (λ (x : ℝ), (x + 1) * log (x + 1) - x * log x) x,
+    { intros x x_pos, 
+      rw diff_helper,
+      rw ← log_div,
+      apply log_pos,
+      rw one_lt_div,
+      linarith,
+      all_goals{linarith [x_pos]} -- need to add 0 < x
+    },
+    have H := convex.strict_mono_of_deriv_pos (convex_Icc 0 1) x_log_x_cont _ _,
+    { sorry},
+    { apply differentiable_on.sub,
+      { apply differentiable_on.mul,
+        { apply differentiable_on.add_const differentiable_on_id,},
+        { apply differentiable_on.log,
+          { apply differentiable_on.add_const differentiable_on_id,},
+          { intros x hx, 
+            rw mem_interior at *,
+            -- screams
+            sorry},
+        },
+      },
+      { sorry},
+    },
+    { -- ∀ (x : ℝ), x ∈ interior (Icc 0 1) → 0 < deriv (λ (x : ℝ), (x + 1) * log (x + 1) - x * log x) x
+      sorry},
+    
+    all_goals{sorry} -- (s + 1) * log (s + 1) ≤ log 4 + s * log s
   },
   { apply rpow_pos_of_pos,
     linarith}
 end
+
+#check continuous_on (λ x, (x + 1) * log (x + 1) - x * log x) (Icc 0 1)
 
 
 example (s : ℝ) (hs : s ∈ Icc (-1 : ℝ) 1): |s*log(|s|) - (s + 1) * log(|s + 1|)| ≤ 2 * log 2 :=
