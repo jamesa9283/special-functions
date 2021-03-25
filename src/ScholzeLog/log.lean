@@ -1,5 +1,5 @@
-import logLemmas.ScholzeHelpLemmas
-import logLemmas.tactics
+import ScholzeLog.logLemmas.ScholzeHelpLemmas
+import ScholzeLog.logLemmas.tactics
 
 import tactic
 
@@ -97,11 +97,15 @@ begin
               apply rpow_pos_of_pos,
               linarith},
             have pow_to_exp2 : (s+1)^(s+1) = exp((s+1) * log(s+1)),
-            { 
-              sorry
+            { rw [← log_rpow (show 0 < s+1, by linarith), exp_log],
+              apply rpow_pos_of_pos,
+              linarith},
+            have H := s_pow_le_s_pow s s_pos hs.2,
+            rw div_le_iff at H,
+            apply H,
+            { apply rpow_pos_of_pos,
+              linarith,},
             },
-
-            sorry},
           { apply rpow_pos_of_pos s_pos},
         },
       }, -- (s + 1) ^ (s + 1) / s ^ s ≤ 4
@@ -149,51 +153,7 @@ begin
   }
 end
 
-example (s : ℝ) (s_pos : 0 < s) (s_max : s ≤ 1): (s + 1) ^ (s + 1) / s ^ s ≤ 4 :=
-begin
-  rw div_le_iff,
-  have pow_to_exp1 : 4*s^s = exp(log 4 + s*log s),
-    { rw [exp_add, exp_log (show 0 < (4 : ℝ), by norm_num), ← log_rpow s_pos, exp_log],
-      apply rpow_pos_of_pos,
-      linarith},
-  have pow_to_exp2 : (s+1)^(s+1) = exp((s+1) * log(s+1)),
-    { rw [← log_rpow (show 0 < s + 1, by linarith), exp_log],
-      apply rpow_pos_of_pos,
-      linarith},
-  { rw [pow_to_exp1, pow_to_exp2],
-    rw exp_le_exp,
-    have H1 : ∀ {x : ℝ}, 0 < x → 0 < deriv (λ (x : ℝ), (x + 1) * log (x + 1) - x * log x) x,
-    { intros x x_pos, 
-      rw diff_helper,
-      rw ← log_div,
-      apply log_pos,
-      rw one_lt_div,
-      linarith,
-      all_goals{linarith [x_pos]} -- need to add 0 < x
-    },
-    have H := convex.strict_mono_of_deriv_pos (convex_Icc 0 1) x_log_x_cont _ _,
-    { sorry},
-    { apply differentiable_on.sub,
-      { apply differentiable_on.mul,
-        { apply differentiable_on.add_const differentiable_on_id,},
-        { apply differentiable_on.log,
-          { apply differentiable_on.add_const differentiable_on_id,},
-          { intros x hx, 
-            rw mem_interior at *,
-            -- screams
-            sorry},
-        },
-      },
-      { sorry},
-    },
-    { -- ∀ (x : ℝ), x ∈ interior (Icc 0 1) → 0 < deriv (λ (x : ℝ), (x + 1) * log (x + 1) - x * log x) x
-      sorry},
-    
-    all_goals{sorry} -- (s + 1) * log (s + 1) ≤ log 4 + s * log s
-  },
-  { apply rpow_pos_of_pos,
-    linarith}
-end
+--example (a b c : ℝ ) : a * b = a * c := by library_search
 
 #check continuous_on (λ x, (x + 1) * log (x + 1) - x * log x) (Icc 0 1)
 
@@ -214,4 +174,8 @@ begin
     sorry
   }
 end
+
+/- OK, so I'm nearly there. I wanted to prove that (x+1)*log(x+1) - xlog x \le 2log2 
+    and I could do that by proving (x+1)log(x+1) - xlog x is strict_mono-/
+
 

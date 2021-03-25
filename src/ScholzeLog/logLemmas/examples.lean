@@ -16,3 +16,10 @@ begin
   apply rpow_pos_of_pos,
   linarith
 end
+
+example (s : ℝ) (s_pos : 0 < s): (s+1)^(s+1) = exp((s+1) * log(s+1)) :=
+begin
+  rw [← log_rpow (show 0 < s+1, by linarith), exp_log],
+  apply rpow_pos_of_pos,
+  linarith,
+end

@@ -1,0 +1,50 @@
+import data.real.basic analysis.special_functions.pow
+
+
+lemma BernoulliInequality (x : ℝ) (hx : 0 ≤ x) (r : ℝ) (hr0 : 0 ≤ r) (hr1 : r ≤ 1) :
+  (1 + x)^r ≤ 1 + r * x :=
+begin
+  let f := λ x, 1 + r * x - (1 + x)^r,
+  have h1 : ∀ x > -1, has_deriv_at f (r - r * (1 + x)^(r - 1) * 1) x,
+  { intros x hx,
+    change f with λ x, 1 + r * x - (1 + x)^r,
+    apply has_deriv_at.sub,
+    { apply has_deriv_at.const_add,
+      nth_rewrite 0 ←mul_one r,
+      apply has_deriv_at.const_mul,
+      exact has_deriv_at_id _ },
+    { change λ x : ℝ, (1 + x)^r with (λ t, t^r) ∘ (λ x, 1 + x),
+      convert has_deriv_at.comp _ _ _ using 1,
+      { apply real.has_deriv_at_rpow,
+        linarith },
+      { apply has_deriv_at.const_add,
+        exact has_deriv_at_id _ } } },
+  have h2 : ∀ x : ℝ, 0 ≤ x → (1 + x)^(r - 1) ≤ 1,
+  { intros x hx,
+    apply real.rpow_le_one_of_one_le_of_nonpos;
+    linarith },
+  have h3 : ∀ x : ℝ, 0 ≤ x → 0 ≤ deriv f x,
+  { intros x hx,
+    rw (h1 x (by linarith)).deriv,
+    nlinarith [h2 x hx] },
+  have h4 : f 0 = 0,
+  { change f with λ x, 1 + r * x - (1 + x)^r,
+    simp only [add_zero, real.one_rpow, mul_zero, sub_self]},
+  have h5 : 0 ≤ f x,
+  { rcases lt_or_eq_of_le hx with (hx|rfl),
+    { rcases exists_deriv_eq_slope f hx _ _ with ⟨c, hc₁, hc₂⟩,
+      rw [h4, sub_zero, sub_zero, eq_div_iff] at hc₂,
+      rw ←hc₂,
+      apply mul_nonneg,
+      { exact h3 _ hc₁.1.le },
+      { exact hx.le },
+      { exact hx.ne.symm },
+      { intros t ht,
+        exact (h1 t (by linarith [ht.1])).continuous_at.continuous_within_at },
+      { intros t ht,
+        exact (h1 t (by linarith [ht.1])).differentiable_at.differentiable_within_at } },
+    rw h4 },
+  change f x with 1 + r * x - (1 + x)^r at h5,
+  linarith,
+end
+
