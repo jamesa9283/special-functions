@@ -1,4 +1,4 @@
-import .tactics .ScholzeLemmas
+import .tactics .ScholzeHelpLemmas
 
 example (s : ℝ) (h : 0 < s) : 4*s^s = exp(log 4 + s*log s) :=
 begin
