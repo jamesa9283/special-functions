@@ -1,6 +1,6 @@
 import data.real.basic analysis.special_functions.pow
 
-
+/- From Shing-/
 lemma BernoulliInequality (x : ℝ) (hx : 0 ≤ x) (r : ℝ) (hr0 : 0 ≤ r) (hr1 : r ≤ 1) :
   (1 + x)^r ≤ 1 + r * x :=
 begin
