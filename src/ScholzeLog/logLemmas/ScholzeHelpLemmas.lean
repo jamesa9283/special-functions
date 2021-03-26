@@ -4,6 +4,7 @@ import analysis.special_functions.pow
 import .tactics .BernoulliReal
 open real set
 
+notation `|`x`|` := abs x
 
 lemma log_mul' {a b : ℝ} (hb : 0 < b) : a * log (b * a) = a * log b + a * log a :=
 begin
@@ -42,3 +43,13 @@ begin
   { linarith,},
   linarith,
 end
+
+lemma x_log_x_le_log_two {x : ℝ} (hx_min : -1 ≤ x) (hx_max : x ≤ 0) : |x * log(|x|)| ≤ log 2 :=
+begin
+  sorry
+end 
+
+lemma x_one_log_x_one_le_log_two {x : ℝ} (hx_min : -1 ≤ x) (hx_max : x ≤ 0) : |(x + 1) * log (|x + 1|)| ≤ log 2 :=
+begin
+  sorry
+end 

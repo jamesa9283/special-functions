@@ -93,12 +93,19 @@ begin
   },
 end
 
-
-lemma part2_2 (s : ℝ) (hs : s ∈ Icc (-1 : ℝ) 1) (s_min : -1 < s) (s_max : s ≤ 0): |s*log(|s|) - (s + 1) * log(|s + 1|)| ≤ 2 * log 2 :=
+lemma part2_2 (s : ℝ) (s_min : -1 ≤ s) (s_max : s ≤ 0): |s*log(|s|) - (s + 1) * log(|s + 1|)| ≤ 2 * log 2 :=
 begin
   -- Here we go again.
-  sorry
+  have H1 := x_log_x_le_log_two s_min s_max,
+  have H2 := x_one_log_x_one_le_log_two s_min s_max,
+  calc
+    |s * log(|s|) - (s + 1) * log(|s + 1|)| = |s * log(|s|) + -((s + 1) * log(|s + 1|))| : by rw sub_eq_add_neg
+    ... ≤  |s * log(|s|) | + | -((s + 1) * log (|s + 1|)) | : by apply abs_add
+    ... = |s * log(|s|) | + | (s + 1) * log (|s + 1|) | : by rw abs_neg
+    ... ≤ log 2 + log 2 : by apply add_le_add H1 H2
+    ... = 2*log 2 : by linarith
 end
+
 
 /- OK, so I'm nearly there. I wanted to prove that (x+1)*log(x+1) - xlog x \le 2log2 
     and I could do that by proving (x+1)log(x+1) - xlog x is strict_mono-/
