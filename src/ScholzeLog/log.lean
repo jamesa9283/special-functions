@@ -42,9 +42,7 @@ begin
     { apply rpow_pos_of_pos,
     linarith,}
   },
-  { --have logle := log_lt_log_iff (s_pos),
-    --rw log_
-    simp only [log_abs, ← log_rpow s_pos, ← log_rpow (show 0 < s + 1, by linarith)],
+  { simp only [log_abs, ← log_rpow s_pos, ← log_rpow (show 0 < s + 1, by linarith)],
     rw ← log_div _ _, -- (*) (**)
     { have h_num : 2 * log 2 = log 4,
       { rw ← log_rpow,
@@ -95,7 +93,6 @@ end
 
 lemma part2_2 (s : ℝ) (s_min : -1 ≤ s) (s_max : s ≤ 0): |s*log(|s|) - (s + 1) * log(|s + 1|)| ≤ 2 * log 2 :=
 begin
-  -- Here we go again.
   have H1 := x_log_x_le_log_two s_min s_max,
   have H2 := x_one_log_x_one_le_log_two s_min s_max,
   calc
@@ -105,9 +102,5 @@ begin
     ... ≤ log 2 + log 2 : by apply add_le_add H1 H2
     ... = 2*log 2 : by linarith
 end
-
-
-/- OK, so I'm nearly there. I wanted to prove that (x+1)*log(x+1) - xlog x \le 2log2 
-    and I could do that by proving (x+1)log(x+1) - xlog x is strict_mono-/
 
 

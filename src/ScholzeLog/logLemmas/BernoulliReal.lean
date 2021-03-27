@@ -47,4 +47,3 @@ begin
   change f x with 1 + r * x - (1 + x)^r at h5,
   linarith,
 end
-
