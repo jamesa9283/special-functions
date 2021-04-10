@@ -102,11 +102,51 @@ end
 
 example (x : ℝ) (hx_max : x < 1) (hx_min : 0 < x) : |x * log(|x|)| ≤ log 2 :=
 begin
-  
-  sorry
+  rw log_abs,
+  rw abs_mul,
+  rw abs_of_pos hx_min,
+  rw abs_of_neg (log_neg hx_min hx_max),
+  rw mul_neg_eq_neg_mul_symm,
+  rw neg_le,
+  rw ← log_inv,
+  rw ← log_rpow hx_min,
+  rw log_le_log,
+  {
+    sorry},
+  { norm_num},
+  { exact rpow_pos_of_pos hx_min _},
 end
 
-#check rpow_le_rpow
+lemma x_to_x_cont : continuous_on (λ (x : ℝ), x^x) (set.Icc 0 1) :=
+begin
+  intros x hx,
+  by_cases h : x = 0,
+  { rw h,
+    intros y hy,
+    simp only [filter.mem_map],
+    simp only at hy,
+    rw (rpow_zero (0 : ℝ)) at hy,
+    unfold nhds_within,
+    rw filter.mem_inf_sets,
+    let s := { x : ℝ | x^x ∈ y },
+    refine ⟨s, _, Icc 0 1, _, _⟩,
+    { 
+      sorry},
+    { simp only [filter.mem_principal_sets],},
+    { simp only [inter_subset_left],}, 
+  },
+  { sorry},
+end
+
+example: 0 ^ 0 = 1 := pow_zero 0
+
+#check convex_on_of_deriv2_nonneg (convex_Icc 0 1)
+
+example (x : ℝ) : 2⁻¹ ≤ x ^ x := 
+begin
+
+  sorry
+end
 
 example (x : ℝ) (hx : 0 < x) : exp(|x|) = exp x := by rw abs_of_pos hx
 
